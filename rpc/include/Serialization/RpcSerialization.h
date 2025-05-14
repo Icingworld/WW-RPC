@@ -1,0 +1,43 @@
+#pragma once
+
+#include <string>
+#include <cstdint>
+#include <memory>
+
+#include <google/protobuf/message.h>
+
+namespace WW
+{
+
+/**
+ * @brief 序列化器
+ */
+class RpcSerialization
+{
+public:
+    /**
+     * @brief 序列化信息
+     * @param service_name 服务名
+     * @param method_name 方法名
+     * @param args 消息
+     * @param out_buffer 输出序列化字符串
+     */
+    static bool serialize(const std::string & service_name,
+                          const std::string & method_name,
+                          const google::protobuf::Message & args,
+                          std::string & out_buffer);
+
+    /**
+     * @brief 反序列化信息
+     * @param in_buffer 输入序列化字符串
+     * @param service_name 服务名
+     * @param method_name 方法名
+     * @param args_data 解析出的数据
+     */
+    static bool deserialize(const std::string & in_buffer,
+                            std::string & service_name,
+                            std::string & method_name,
+                            std::string & args_data);
+};
+
+} // namespace WW
