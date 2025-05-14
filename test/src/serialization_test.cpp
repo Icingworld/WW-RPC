@@ -15,11 +15,11 @@ int main()
     std::string serialized_str;
 
     if (!WW::RpcSerialization::serialize("test_service", "test_method", msg, serialized_str)) {
-        std::cerr << "Serialization failed!" << std::endl;
+        std::cerr << "[FAIL] Serialization failed!" << std::endl;
         return -1;
     }
 
-    std::cout << "[ok]Serialization success." << std::endl;
+    std::cout << "[ok] Serialization success." << std::endl;
 
     // 测试反序列化
     std::string service_name;
@@ -36,8 +36,8 @@ int main()
     assert(get_msg.id() == 42);
     assert(get_msg.msg() == "Hello, RPC!");
 
-    std::cout << "[ok]Deserialization success." << std::endl;
-    std::cout << "[PASS]Serialization Test Passed." << std::endl;
+    std::cout << "[ok] Deserialization success." << std::endl;
+    std::cout << "[PASS] Serialization Test Passed." << std::endl;
 
     return 0;
 }

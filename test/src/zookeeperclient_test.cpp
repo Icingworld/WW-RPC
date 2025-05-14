@@ -19,7 +19,7 @@ int main() {
         std::cout << "[OK] Created node: " << path << std::endl;
 
         // 获取数据
-        std::string fetched = zkClient.get_data(path);
+        std::string fetched = zkClient.getData(path);
         std::cout << "[OK] Fetched data: " << fetched << std::endl;
 
         assert(fetched == data);
