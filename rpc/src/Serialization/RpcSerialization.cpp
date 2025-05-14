@@ -47,7 +47,7 @@ bool RpcSerialization::serialize(const std::string & service_name,
 bool RpcSerialization::deserialize(const std::string & in_buffer,
                                    std::string & service_name,
                                    std::string & method_name,
-                                   std::string & args_data)
+                                   google::protobuf::Message & args)
 {
     if (in_buffer.size() < sizeof(uint32_t)) {
         // 长度不够报文头，非法报文
@@ -82,7 +82,13 @@ bool RpcSerialization::deserialize(const std::string & in_buffer,
     }
 
     // 将 args 赋值给目标字符串
+    std::string args_data;
     args_data.assign(in_buffer.data() + args_offset, args_size);
+
+    // 从 args_data 解析出消息
+    if (!args.ParseFromString(args_data)) {
+        return false;
+    }
 
     return true;
 }

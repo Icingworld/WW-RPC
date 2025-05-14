@@ -32,12 +32,12 @@ public:
      * @param in_buffer 输入序列化字符串
      * @param service_name 服务名
      * @param method_name 方法名
-     * @param args_data 解析出的数据
+     * @param args 解析出的消息
      */
     static bool deserialize(const std::string & in_buffer,
                             std::string & service_name,
                             std::string & method_name,
-                            std::string & args_data);
+                            google::protobuf::Message & args);
 };
 
 } // namespace WW
