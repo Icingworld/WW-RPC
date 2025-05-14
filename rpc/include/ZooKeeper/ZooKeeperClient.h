@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <zookeeper/zookeeper.h>
 
@@ -33,14 +34,32 @@ public:
      * @param path 节点路径
      * @param data 节点数据
      * @param ephemeral 是否是临时节点
+     * @return 是否创建成功
      */
-    void create(const std::string & path, const std::string & data, bool ephemeral = false);
+    bool create(const std::string & path, const std::string & data, bool ephemeral = false);
+
+    /**
+     * @brief 递归创建一个 znode 节点
+     * @param path 节点路径
+     * @param data 节点数据
+     * @param ephemeral 是否是临时节点
+     * @return 是否创建成功
+     */
+    bool createRecursive(const std::string & path, const std::string & data, bool ephemeral = false);
 
     /**
      * @brief 获取指定 znode 节点的值
      * @param path 节点路径
+     * @return 节点值
      */
-    std::string get_data(const std::string & path);
+    std::string getData(const std::string & path);
+
+    /**
+     * @brief 获取路径所有子节点
+     * @param path 节点路径
+     * @return 是否获取成功
+     */
+    bool getChildren(const std::string & path, std::vector<std::string> & childs);
 
 private:
     /**
@@ -51,7 +70,7 @@ private:
      * - 会话状态改变（如连接建立、断开、重连等）
      * - 被监听节点的创建、删除、修改等事件发生
      * 
-     * @param zh zookeeper 句柄
+     * @param zh ZooKeeper 句柄
      * @param type 事件类型（如 ZOO_CREATED_EVENT, ZOO_DELETED_EVENT 等）
      * @param state 会话状态（如 ZOO_CONNECTED_STATE, ZOO_EXPIRED_SESSION_STATE 等）
      * @param path 触发事件的节点路径

@@ -1,6 +1,7 @@
 #include "ZooKeeperClient.h"
 
 #include <stdexcept>
+#include <sstream>
 
 namespace WW
 {
@@ -29,7 +30,7 @@ void ZooKeeperClient::start(const std::string & zk_host, int timeout)
     }
 }
 
-void ZooKeeperClient::create(const std::string & path, const std::string & data, bool ephemeral)
+bool ZooKeeperClient::create(const std::string & path, const std::string & data, bool ephemeral)
 {
     char buffer[512] = {0};
     int flag = 0;
@@ -41,16 +42,38 @@ void ZooKeeperClient::create(const std::string & path, const std::string & data,
     int ret = zoo_create(_Zk_handle, path.c_str(), data.c_str(), data.size(), &ZOO_OPEN_ACL_UNSAFE, flag, buffer, sizeof(buffer));
 
     if (ret != ZOK) {
-        if (ret == ZNODEEXISTS) {
-            // 节点已经存在，创建失败
-            // TODO
-        } else {
-            _Throw_runtime_error("Failed to create znode: " + path + ", code: " + std::to_string(ret));
-        }
+        return false;
     }
+
+    return true;
 }
 
-std::string ZooKeeperClient::get_data(const std::string & path)
+bool ZooKeeperClient::createRecursive(const std::string & path, const std::string & data, bool ephemeral)
+{
+    std::istringstream iss(path);
+    std::string token;
+    std::string current;
+
+    int flag = 0;
+    if (ephemeral) {
+        flag = ZOO_EPHEMERAL;
+    }
+
+    while (std::getline(iss, token, '/')) {
+        if (token.empty()) {
+            continue;
+        }
+
+        current += "/" + token;
+
+        if (zoo_exists(_Zk_handle, current.c_str(), 0, nullptr) != ZOK) {
+            zoo_create(_Zk_handle, current.c_str(), "", 0, &ZOO_OPEN_ACL_UNSAFE, flag, nullptr, 0);
+        }
+    }
+    return true;
+}
+
+std::string ZooKeeperClient::getData(const std::string & path)
 {
     char buffer[512] = {0};
     int len = sizeof(buffer);
@@ -62,6 +85,26 @@ std::string ZooKeeperClient::get_data(const std::string & path)
         return "";
     }
     return std::string(buffer, len);
+}
+
+bool ZooKeeperClient::getChildren(const std::string & path, std::vector<std::string> & childs)
+{
+    // ZooKeeper 内置结构体
+    struct String_vector strings;
+
+    int ret = zoo_get_children(_Zk_handle, path.c_str(), 0, &strings);
+    if (ret != ZOK) {
+        return false;
+    }
+
+    for (int i = 0; i < strings.count; ++i) {
+        childs.emplace_back(strings.data[i]);
+    }
+
+    // 释放分配的内存
+    deallocate_String_vector(&strings);
+
+    return true;
 }
 
 void ZooKeeperClient::watcher(zhandle_t * zh, int type, int state, const char * path, void * watcherCtx)

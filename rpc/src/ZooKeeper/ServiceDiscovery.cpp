@@ -12,13 +12,20 @@ ServiceDiscovery::ServiceDiscovery(const std::string & ip, const std::string & p
 
 ServiceDiscovery & ServiceDiscovery::getServiceDiscovery(const std::string & ip, const std::string & port, int timeout)
 {
-    static ServiceDiscovery discover(ip, port, timeout);
-    return discover;
+    static ServiceDiscovery discovery(ip, port, timeout);
+    return discovery;
 }
 
-std::vector<std::string> ServiceDiscovery::discover(const std::string & service_name, const std::string & method_name)
+std::vector<std::string> ServiceDiscovery::discoverService(const std::string & service_name, const std::string & method_name)
 {
+    // 构造路径
+    std::string base_path = "/rpc/" + service_name + "/" + method_name;
 
+    std::vector<std::string> childs;
+
+    _Zk_client.getChildren(base_path, childs);
+
+    return childs;
 }
 
 } // namespace WW

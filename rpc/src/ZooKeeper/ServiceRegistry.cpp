@@ -26,11 +26,15 @@ bool ServiceRegistry::registerService(const std::string & service_name, const st
 
     // 持久节点，用于储存服务和方法
     std::string base_path = "/rpc/" + service_name + "/" + method_name;
-    _Zk_client.create(base_path, "", false);
+    if (!_Zk_client.createRecursive(base_path, "", false)) {
+        return false;
+    }
 
     // 临时节点，当服务下线时会自动从 Zookeeper 注销
     std::string path = base_path + "/" + ip + ":" + port;
-    _Zk_client.create(path, "", true);
+    if (!_Zk_client.create(path, "", true)) {
+        return false;
+    }
 
     return true;
 }

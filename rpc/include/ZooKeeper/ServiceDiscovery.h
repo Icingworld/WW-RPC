@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include <ZooKeeper/ZooKeeperClient.h>
 
 namespace WW
@@ -43,7 +41,7 @@ public:
      * @param method_name 方法名
      * @return 储存`ip:port`字符串的数组
      */
-    std::vector<std::string> discover(const std::string & service_name, const std::string & method_name);
+    std::vector<std::string> discoverService(const std::string & service_name, const std::string & method_name);
 
 };
 
