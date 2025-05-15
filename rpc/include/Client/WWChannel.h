@@ -1,21 +1,36 @@
 #pragma once
 
 #include <google/protobuf/service.h>
+#include <google/protobuf/descriptor.h>
+#include <muduo/net/EventLoop.h>
 
 namespace WW
 {
 
 /**
- * @brief 
+ * @brief 调用方法的上下文
+*/
+class CallMethodContext
+{
+public:
+    const google::protobuf::MethodDescriptor * method;
+    google::protobuf::RpcController * controller;
+    const google::protobuf::Message * request;
+    google::protobuf::Message * response;
+    google::protobuf::Closure * done;
+};
+
+/**
+ * @brief 通道
+ * @details 被客户端调用
  */
-class Channel : public google::protobuf::RpcChannel
+class WWChannel : public google::protobuf::RpcChannel
 {
 private:
+    muduo::net::EventLoop _Event_loop;  // 事件循环
+    CallMethodContext _Context;         // 调用上下文
 
 public:
-    Channel();
-
-    ~Channel();
 
 public:
     /**
@@ -33,6 +48,18 @@ public:
                     const google::protobuf::Message * request,
                     google::protobuf::Message * response,
                     google::protobuf::Closure * done) override;
+
+private:
+    /**
+     * @brief 连接事件回调函数
+     * @param conn Tcp 连接
+     */
+    void onConnection(const muduo::net::TcpConnectionPtr & conn);
+
+    /**
+     * @brief 消息事件回调函数
+     */
+    void onMessage(const muduo::net::TcpConnectionPtr & conn, muduo::net::Buffer * buffer, muduo::Timestamp receive_time);
 };
 
 } // namespace WW
