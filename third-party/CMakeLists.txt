@@ -1,3 +1,5 @@
+add_subdirectory(muduo)
+
 add_library(third-party INTERFACE)
 
 find_package(Threads REQUIRED)
@@ -10,6 +12,8 @@ include_directories(/usr/include)
 link_directories(/usr/lib)
 
 target_link_libraries(third-party INTERFACE
+    muduo_base
+    muduo_net
     Threads::Threads
     protobuf::libprotobuf
     zookeeper_mt
