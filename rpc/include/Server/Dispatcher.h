@@ -56,6 +56,11 @@ private:
      * @brief 消息事件回调函数
      */
     void onMessage(const muduo::net::TcpConnectionPtr & conn, muduo::net::Buffer * buffer, muduo::Timestamp receive_time);
+
+    /**
+     * @brief 发送响应
+     */
+    void sendResponse(const muduo::net::TcpConnectionPtr & conn, google::protobuf::Message * response);
 };
 
 } // namespace WW

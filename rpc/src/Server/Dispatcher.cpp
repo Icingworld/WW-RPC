@@ -88,7 +88,7 @@ void Dispatcher::onMessage(const muduo::net::TcpConnectionPtr & conn, muduo::net
         return;
     }
 
-    ServiceInfo info = service_it->second;
+    ServiceInfo & info = service_it->second;
 
     auto method_it = info._Method_map.find(method_name);
     if (method_it == info._Method_map.end()) {
@@ -96,6 +96,7 @@ void Dispatcher::onMessage(const muduo::net::TcpConnectionPtr & conn, muduo::net
     }
 
     // 创建请求信息结构
+    // TODO 生命周期管理
     google::protobuf::Message * request = info._Service->GetRequestPrototype(method_it->second).New();
 
     if (!RpcSerialization::deserializeArgs(arg_buf, request)) {
@@ -103,14 +104,28 @@ void Dispatcher::onMessage(const muduo::net::TcpConnectionPtr & conn, muduo::net
     }
 
     // 创建响应结构
+    // TODO 生命周期管理
     google::protobuf::Message * response = info._Service->GetResponsePrototype(method_it->second).New();
 
     // 创建回调函数
-    // TODO
-    google::protobuf::Closure * done = nullptr;
+    google::protobuf::Closure * done = google::protobuf::NewCallback<
+        Dispatcher, const muduo::net::TcpConnectionPtr &, google::protobuf::Message *
+    >(this, &Dispatcher::sendResponse, conn, response);
 
     // 调用方法
     info._Service->CallMethod(method_it->second, nullptr, request, response, done);
+}
+
+void Dispatcher::sendResponse(const muduo::net::TcpConnectionPtr & conn, google::protobuf::Message * response)
+{
+    std::string response_str;
+    if (response->SerializeToString(&response_str)) {
+        // 序列化成功，发送响应
+        conn->send(response_str);
+    }
+
+    // 关闭连接
+    conn->shutdown();
 }
 
 } // namespace WW

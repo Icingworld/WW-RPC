@@ -84,11 +84,6 @@ bool RpcSerialization::deserialize(const std::string & in_buffer,
     // 将 args 赋值给目标字符串
     out_buffer.assign(in_buffer.data() + args_offset, args_size);
 
-    // // 从 args_data 解析出消息
-    // if (!args.ParseFromString(args_data)) {
-    //     return false;
-    // }
-
     return true;
 }
 
