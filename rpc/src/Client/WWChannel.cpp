@@ -98,7 +98,9 @@ void WWChannel::onMessage(const muduo::net::TcpConnectionPtr & conn, muduo::net:
     }
 
     // 调用回调函数，通知业务层
-    _Context.done->Run();
+    if (_Context.done != nullptr) {
+        _Context.done->Run();
+    }
 
     // 关闭连接
     conn->shutdown();
