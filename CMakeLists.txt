@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(third-party)
 add_subdirectory(rpc)
+add_subdirectory(example)
 
 option(WWTEST "Enable Test" ON)
 
