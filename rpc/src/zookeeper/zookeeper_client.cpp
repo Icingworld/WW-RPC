@@ -6,6 +6,11 @@
 namespace WW
 {
 
+// 初始化静态成员变量
+std::mutex zookeeper_client::_Mutex;
+std::condition_variable zookeeper_client::_Cv;
+bool zookeeper_client::_Connected = false;
+
 zookeeper_client::zookeeper_client()
     : _Zk_handle(nullptr)
 {
@@ -22,12 +27,19 @@ zookeeper_client::~zookeeper_client()
 void zookeeper_client::connect(const std::string & zk_host, int timeout)
 {
     // 初始化 ZooKeeper 连接
+    // 该方法是异步的，不应认为建立了连接
     _Zk_handle = zookeeper_init(zk_host.c_str(), watcher, timeout, nullptr, nullptr, 0);
 
     if (_Zk_handle == nullptr) {
         // 初始化失败
         _Throw_runtime_error("Fail to connect ZooKeeper at: " + zk_host);
     }
+
+    // 等待连接
+    std::unique_lock<std::mutex> lock(_Mutex);
+    _Cv.wait(lock, []() {
+        return _Connected;
+    });
 }
 
 bool zookeeper_client::create(const std::string & path, const std::string & data, bool ephemeral)
@@ -109,7 +121,14 @@ bool zookeeper_client::get_children(const std::string & path, std::vector<std::s
 
 void zookeeper_client::watcher(zhandle_t * zh, int type, int state, const char * path, void * watcher_ctx)
 {
-    // TODO
+    if (type == ZOO_SESSION_EVENT) {
+        if (state == ZOO_CONNECTED_STATE) {
+            std::lock_guard<std::mutex> lock(_Mutex);
+            _Connected = true;
+        }
+    }
+
+    _Cv.notify_all();
 }
 
 void zookeeper_client::_Throw_runtime_error(const std::string & message) const
