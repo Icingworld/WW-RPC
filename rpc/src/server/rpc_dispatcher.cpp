@@ -3,8 +3,9 @@
 #include <memory>
 #include <functional>
 
-#include <serialization/rpc_serialization.h>
 #include <zookeeper/service_registry.h>
+#include <serialization/rpc_serialization.h>
+#include <config/rpc_config.h>
 #include <muduo/net/InetAddress.h>
 
 namespace WW
@@ -34,7 +35,9 @@ void rpc_dispatcher::register_service(google::protobuf::Service * service)
 void rpc_dispatcher::run()
 {
     // 获取 Zookeeper 服务注册实例
-    service_registry & registry = service_registry::get_service_registry("127.0.0.1", "2181");
+    service_registry & registry = service_registry::get_service_registry(
+        rpc_config::get_rpc_config().get_zookeeper_ip(), rpc_config::get_rpc_config().get_zookeeper_port()
+    );
 
     // 将服务全部注册到 ZooKeeper 中
     for (auto service_it = _Service_map.begin(); service_it != _Service_map.end(); ++service_it) {
@@ -42,7 +45,9 @@ void rpc_dispatcher::run()
         service_info & service_info = service_it->second;
 
         for (auto method_it = service_info._Method_map.begin(); method_it != service_info._Method_map.end(); ++method_it) {
-            if (!registry.register_service(service_name, method_it->first, "127.0.0.1", "6666")) {
+            if (!registry.register_service(service_name, method_it->first, 
+                rpc_config::get_rpc_config().get_local_ip(), rpc_config::get_rpc_config().get_local_port()
+            )) {
                 // 注册失败
                 // TODO
             }
@@ -50,7 +55,7 @@ void rpc_dispatcher::run()
     }
 
     // 启动 TCP 服务并监听
-    muduo::net::InetAddress address("127.0.0.1", 6666);
+    muduo::net::InetAddress address(rpc_config::get_rpc_config().get_local_ip(), std::stoi(rpc_config::get_rpc_config().get_local_port()));
     std::shared_ptr<muduo::net::TcpServer> server = std::make_shared<muduo::net::TcpServer>(&_Event_loop, address, "rpc_dispatcher");
 
     // 设置回调函数

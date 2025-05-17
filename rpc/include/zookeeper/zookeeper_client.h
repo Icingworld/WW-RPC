@@ -2,6 +2,8 @@
 
 #include <string>
 #include <vector>
+#include <mutex>
+#include <condition_variable>
 
 #include <zookeeper/zookeeper.h>
 
@@ -14,7 +16,10 @@ namespace WW
 class zookeeper_client
 {
 private:
-    zhandle_t * _Zk_handle;         // zookeeper 句柄
+    zhandle_t * _Zk_handle;                 // zookeeper 句柄
+    static std::mutex _Mutex;               // 锁
+    static std::condition_variable _Cv;     // 条件变量
+    static bool _Connected;                 // 是否连接成功
 
 public:
     zookeeper_client();

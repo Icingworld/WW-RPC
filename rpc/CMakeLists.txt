@@ -4,6 +4,8 @@ add_library(ww-rpc STATIC ${RPC_SOURCES})
 
 target_include_directories(ww-rpc PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/config
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/log
     ${CMAKE_CURRENT_SOURCE_DIR}/include/zookeeper
     ${CMAKE_CURRENT_SOURCE_DIR}/include/serialization
     ${CMAKE_CURRENT_SOURCE_DIR}/include/client

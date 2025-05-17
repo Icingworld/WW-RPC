@@ -7,6 +7,7 @@
 
 #include <zookeeper/service_discovery.h>
 #include <serialization/rpc_serialization.h>
+#include <config/rpc_config.h>
 #include <muduo/net/TcpConnection.h>
 #include <muduo/net/TcpClient.h>
 #include <muduo/net/InetAddress.h>
@@ -25,7 +26,9 @@ void rpc_channel::CallMethod(const google::protobuf::MethodDescriptor * method,
     std::string method_name = method->name();
 
     // 向 Zookeeper 查询节点
-    service_discovery & discovery = service_discovery::get_service_discovery("127.0.0.1", "2181");
+    service_discovery & discovery = service_discovery::get_service_discovery(
+        rpc_config::get_rpc_config().get_zookeeper_ip(), rpc_config::get_rpc_config().get_zookeeper_port()
+    );
     std::vector<std::string> hosts = discovery.discover_service(service_name, method_name);
 
     if (hosts.size() == 0) {
@@ -44,10 +47,10 @@ void rpc_channel::CallMethod(const google::protobuf::MethodDescriptor * method,
 
     std::string ip = host.substr(0, pos);
     std::string port = host.substr(pos + 1);
-    muduo::net::InetAddress serverAddr(ip, std::stoi(port));
+    muduo::net::InetAddress server_addr(ip, std::stoi(port));
 
     // 创建一个 TCP 连接
-    muduo::net::TcpClient client(&_Event_loop, serverAddr, "rpc_channel");
+    muduo::net::TcpClient client(&_Event_loop, server_addr, "rpc_channel");
 
     // 设置回调函数
     client.setConnectionCallback(std::bind(&rpc_channel::on_connection, this, std::placeholders::_1));
